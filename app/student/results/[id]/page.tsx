@@ -15,7 +15,7 @@ import { toast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function QuizResultDetailPage() {
   const { id } = useParams(); // quiz id from URL
@@ -30,7 +30,7 @@ export default function QuizResultDetailPage() {
     const fetchQuizDetails = async () => {
       try {
         const response = await axios.get(
-          `${API_URL}/quiz/student/result/${id}`,
+          `${API_URL}/api/quiz/student/result/${id}`,
           {
             withCredentials: true,
           }

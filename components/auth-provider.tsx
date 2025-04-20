@@ -65,14 +65,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       await authService.signIn(email, password, role); // ✅ only signin
-
       const currentUser = await authService.getCurrentUserFromServer(); // ✅ fetch real user
-      console.log("🚀 ~ AuthProvider ~ currentUser:", currentUser);
-
       setUser(currentUser);
-
       router.push(`/${currentUser.role}/dashboard`); // ✅ use currentUser.role
     } catch (error) {
+      throw error;
       console.error("Sign in failed:", error);
     } finally {
       setLoading(false);

@@ -28,7 +28,7 @@ export default function StudentDashboard() {
     const fetchAvailableQuizzes = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/quiz/all-quize`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/quiz/all-quize`,
           { withCredentials: true }
         );
         console.log("🚀 ~ fetchAvailableQuizzes ~ response:", response);
@@ -50,7 +50,7 @@ export default function StudentDashboard() {
     const fetchRecentResults = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/quiz/student/recent-results`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/quiz/student/recent-results`,
           { withCredentials: true }
         );
         setRecentResults(response.data.results);

@@ -33,9 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import TeacherLayout from "@/components/teacher-layout";
 import { AuthContext } from "@/components/auth-provider";
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/quiz";
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const formSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
@@ -149,7 +147,7 @@ export default function CreateQuizPage() {
 
       console.log("🚀 ~ onSubmit ~ payload:", payload);
 
-      const response = await axios.post(`${API_URL}/create`, payload, {
+      const response = await axios.post(`${API_URL}/api/quiz/create`, payload, {
         withCredentials: true, // ✅ Send cookies like user_token!
         headers: {
           "Content-Type": "application/json",

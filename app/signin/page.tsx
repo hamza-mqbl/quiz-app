@@ -36,7 +36,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -72,10 +72,14 @@ export default function SignInPage() {
         title: "Sign in successful",
         description: `Welcome back! You are now signed in as a ${values.role}.`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.log("🚀 ~ onSubmit ~ error:,,,,,,,,,", error);
+      const message =
+        error?.response?.data?.message ||
+        "Something went wrong. Please try again.";
       toast({
         title: "Sign in failed",
-        description: "Please check your credentials and try again.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -259,6 +263,16 @@ export default function SignInPage() {
                 </Button>
                 <Button variant="outline" className="w-full">
                   Microsoft
+                </Button>
+                <Button
+                  onClick={() =>
+                    toast({
+                      title: "Test Toast",
+                      description: "Should appear now",
+                    })
+                  }
+                >
+                  Test Toast
                 </Button>
               </div>
             </CardFooter>

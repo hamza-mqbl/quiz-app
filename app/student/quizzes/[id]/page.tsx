@@ -118,7 +118,7 @@ export default function TakeQuizPage({ params }: { params: { id: string } }) {
       ); // maintain order
 
       const response = await axios.post(
-        `http://localhost:5000/api/quiz/submit/${quizData._id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/quiz/submit/${quizData._id}`,
         { answers: answersArray },
         { withCredentials: true } // ✅ important to send student cookie (user_token)
       );
@@ -140,7 +140,7 @@ export default function TakeQuizPage({ params }: { params: { id: string } }) {
   const handleQuizCodeSubmit = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/quiz/join/${quizCodeInput}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/quiz/join/${quizCodeInput}`
       );
       const quiz = response.data.quiz;
       setQuizData(quiz);

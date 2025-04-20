@@ -17,7 +17,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "@/components/ui/use-toast"; // ✅ Import toast (you already have it)
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function TeacherQuizzes() {
   // state
@@ -33,7 +33,7 @@ export default function TeacherQuizzes() {
 
   const fetchQuizzes = async () => {
     try {
-      const response = await axios.get(`${API_URL}/quiz/my-quizzes`, {
+      const response = await axios.get(`${API_URL}/api/quiz/my-quizzes`, {
         withCredentials: true,
       });
 
@@ -59,7 +59,7 @@ export default function TeacherQuizzes() {
   const publishQuiz = async (quizId: string) => {
     try {
       await axios.put(
-        `${API_URL}/quiz/publish/${quizId}`,
+        `${API_URL}/api/quiz/publish/${quizId}`,
         {},
         { withCredentials: true }
       );
@@ -81,7 +81,7 @@ export default function TeacherQuizzes() {
   const publishResults = async (quizId: string) => {
     try {
       await axios.put(
-        `${API_URL}/quiz/publish-result/${quizId}`,
+        `${API_URL}/api/quiz/publish-result/${quizId}`,
         {},
         { withCredentials: true }
       );
