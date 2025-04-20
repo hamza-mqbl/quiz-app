@@ -1,21 +1,40 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useFieldArray, useForm } from "react-hook-form"
-import { z } from "zod"
-import { Trash2, Plus, Save } from "lucide-react"
+import { useContext, useState } from "react";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
+import { Trash2, Plus, Save } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Separator } from "@/components/ui/separator"
-import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/components/ui/use-toast"
-import TeacherLayout from "@/components/teacher-layout"
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import axios from "axios"; // 👈 Import axios at the top
+
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
+import TeacherLayout from "@/components/teacher-layout";
+import { AuthContext } from "@/components/auth-provider";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/quiz";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -35,7 +54,7 @@ const formSchema = z.object({
           .array(
             z.string().min(1, {
               message: "Option cannot be empty.",
-            }),
+            })
           )
           .min(2, {
             message: "At least 2 options are required.",
@@ -43,19 +62,19 @@ const formSchema = z.object({
         correctAnswer: z.string().min(1, {
           message: "Please select a correct answer.",
         }),
-      }),
+      })
     )
     .min(1, {
       message: "At least one question is required.",
     }),
-})
+});
 
-type QuizFormValues = z.infer<typeof formSchema>
+type QuizFormValues = z.infer<typeof formSchema>;
 
 export default function CreateQuizPage() {
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useContext(AuthContext);
   const form = useForm<QuizFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -70,28 +89,94 @@ export default function CreateQuizPage() {
         },
       ],
     },
-  })
+  });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "questions",
-  })
+  });
 
-  function onSubmit(values: QuizFormValues) {
-    setIsSubmitting(true)
+  // function onSubmit(values: QuizFormValues) {
+  //   setIsSubmitting(true)
 
-    // Here you would typically make an API call to save the quiz
-    console.log(values)
+  //   // Here you would typically make an API call to save the quiz
+  //   console.log(values)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
+  //   // Simulate API call
+  //   setTimeout(() => {
+  //     setIsSubmitting(false)
+  //     toast({
+  //       title: "Quiz Created",
+  //       description: "Your quiz has been created successfully.",
+  //     })
+  //     router.push("/teacher/quizzes")
+  //   }, 1000)
+  // }
+
+  function generateQuizCode() {
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let code = "";
+    for (let i = 0; i < 8; i++) {
+      code += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return code;
+  }
+
+  // ...
+
+  async function onSubmit(values: QuizFormValues) {
+    setIsSubmitting(true);
+
+    try {
+      if (!user?._id) {
+        toast({
+          title: "Error",
+          description: "You must be logged in as a teacher to create a quiz.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const createdBy = user._id;
+
+      const payload = {
+        ...values,
+        createdBy,
+        quizCode: generateQuizCode(),
+      };
+
+      console.log("🚀 ~ onSubmit ~ payload:", payload);
+
+      const response = await axios.post(`${API_URL}/create`, payload, {
+        withCredentials: true, // ✅ Send cookies like user_token!
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("🚀 ~ onSubmit ~ response:", response.data);
+
       toast({
         title: "Quiz Created",
         description: "Your quiz has been created successfully.",
-      })
-      router.push("/teacher/quizzes")
-    }, 1000)
+      });
+
+      router.push("/teacher/quizzes");
+    } catch (error: any) {
+      console.error("🚀 ~ onSubmit ~ error:", error);
+
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "Something went wrong while creating the quiz.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -99,7 +184,9 @@ export default function CreateQuizPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Create Quiz</h1>
-          <p className="text-muted-foreground">Create a new quiz for your students.</p>
+          <p className="text-muted-foreground">
+            Create a new quiz for your students.
+          </p>
         </div>
 
         <Form {...form}>
@@ -107,7 +194,9 @@ export default function CreateQuizPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Quiz Details</CardTitle>
-                <CardDescription>Enter the basic information about your quiz.</CardDescription>
+                <CardDescription>
+                  Enter the basic information about your quiz.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -117,9 +206,14 @@ export default function CreateQuizPage() {
                     <FormItem>
                       <FormLabel>Quiz Title</FormLabel>
                       <FormControl>
-                        <Input placeholder="Introduction to Biology" {...field} />
+                        <Input
+                          placeholder="Introduction to Biology"
+                          {...field}
+                        />
                       </FormControl>
-                      <FormDescription>The title of your quiz as it will appear to students.</FormDescription>
+                      <FormDescription>
+                        The title of your quiz as it will appear to students.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -131,9 +225,14 @@ export default function CreateQuizPage() {
                     <FormItem>
                       <FormLabel>Topic</FormLabel>
                       <FormControl>
-                        <Input placeholder="Science, Mathematics, History, etc." {...field} />
+                        <Input
+                          placeholder="Science, Mathematics, History, etc."
+                          {...field}
+                        />
                       </FormControl>
-                      <FormDescription>The subject or topic this quiz covers.</FormDescription>
+                      <FormDescription>
+                        The subject or topic this quiz covers.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -151,7 +250,9 @@ export default function CreateQuizPage() {
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription>Additional information about the quiz for your students.</FormDescription>
+                      <FormDescription>
+                        Additional information about the quiz for your students.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -171,7 +272,7 @@ export default function CreateQuizPage() {
                       questionText: "",
                       options: ["", "", "", ""],
                       correctAnswer: "",
-                    })
+                    });
                   }}
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -184,10 +285,17 @@ export default function CreateQuizPage() {
                   <CardHeader className="flex flex-row items-start justify-between space-y-0">
                     <div>
                       <CardTitle>Question {index + 1}</CardTitle>
-                      <CardDescription>Create a multiple-choice question.</CardDescription>
+                      <CardDescription>
+                        Create a multiple-choice question.
+                      </CardDescription>
                     </div>
                     {fields.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(index)}
+                      >
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Remove question</span>
                       </Button>
@@ -201,7 +309,10 @@ export default function CreateQuizPage() {
                         <FormItem>
                           <FormLabel>Question</FormLabel>
                           <FormControl>
-                            <Textarea placeholder="Enter your question here..." {...field} />
+                            <Textarea
+                              placeholder="Enter your question here..."
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -210,23 +321,28 @@ export default function CreateQuizPage() {
 
                     <div className="space-y-4">
                       <FormLabel>Options</FormLabel>
-                      {form.getValues(`questions.${index}.options`).map((_, optionIndex) => (
-                        <FormField
-                          key={optionIndex}
-                          control={form.control}
-                          name={`questions.${index}.options.${optionIndex}`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <div className="flex items-center gap-2">
-                                <FormControl>
-                                  <Input placeholder={`Option ${optionIndex + 1}`} {...field} />
-                                </FormControl>
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      ))}
+                      {form
+                        .getValues(`questions.${index}.options`)
+                        .map((_, optionIndex) => (
+                          <FormField
+                            key={optionIndex}
+                            control={form.control}
+                            name={`questions.${index}.options.${optionIndex}`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center gap-2">
+                                  <FormControl>
+                                    <Input
+                                      placeholder={`Option ${optionIndex + 1}`}
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ))}
                     </div>
 
                     <FormField
@@ -236,21 +352,34 @@ export default function CreateQuizPage() {
                         <FormItem className="space-y-3">
                           <FormLabel>Correct Answer</FormLabel>
                           <FormControl>
-                            <RadioGroup onValueChange={field.onChange} value={field.value} className="space-y-2">
-                              {form.getValues(`questions.${index}.options`).map((option, optionIndex) => {
-                                if (!option) return null
-                                return (
-                                  <FormItem key={optionIndex} className="flex items-center space-x-3 space-y-0">
-                                    <FormControl>
-                                      <RadioGroupItem value={option} />
-                                    </FormControl>
-                                    <FormLabel className="font-normal cursor-pointer">{option}</FormLabel>
-                                  </FormItem>
-                                )
-                              })}
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              className="space-y-2"
+                            >
+                              {form
+                                .getValues(`questions.${index}.options`)
+                                .map((option, optionIndex) => {
+                                  if (!option) return null;
+                                  return (
+                                    <FormItem
+                                      key={optionIndex}
+                                      className="flex items-center space-x-3 space-y-0"
+                                    >
+                                      <FormControl>
+                                        <RadioGroupItem value={option} />
+                                      </FormControl>
+                                      <FormLabel className="font-normal cursor-pointer">
+                                        {option}
+                                      </FormLabel>
+                                    </FormItem>
+                                  );
+                                })}
                             </RadioGroup>
                           </FormControl>
-                          <FormDescription>Select the correct answer for this question.</FormDescription>
+                          <FormDescription>
+                            Select the correct answer for this question.
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -262,7 +391,11 @@ export default function CreateQuizPage() {
             </div>
 
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={() => router.push("/teacher/quizzes")}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/teacher/quizzes")}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
@@ -280,6 +413,5 @@ export default function CreateQuizPage() {
         </Form>
       </div>
     </TeacherLayout>
-  )
+  );
 }
-
