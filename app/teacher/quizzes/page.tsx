@@ -1,98 +1,132 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Plus, Search } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import TeacherLayout from "@/components/teacher-layout"
+import Link from "next/link";
+import { Plus, Search } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import TeacherLayout from "@/components/teacher-layout";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "@/components/ui/use-toast"; // ✅ Import toast (you already have it)
 
-// Mock data for quizzes
-const mockQuizzes = [
-  {
-    id: "1",
-    title: "Introduction to Biology",
-    topic: "Science",
-    questions: 15,
-    createdAt: "2023-05-15",
-    submissions: 24,
-    status: "published",
-  },
-  {
-    id: "2",
-    title: "World History: Ancient Civilizations",
-    topic: "History",
-    questions: 20,
-    createdAt: "2023-05-10",
-    submissions: 18,
-    status: "published",
-  },
-  {
-    id: "3",
-    title: "Algebra Fundamentals",
-    topic: "Mathematics",
-    questions: 12,
-    createdAt: "2023-05-05",
-    submissions: 32,
-    status: "published",
-  },
-  {
-    id: "4",
-    title: "Chemistry Basics",
-    topic: "Science",
-    questions: 18,
-    createdAt: "2023-04-28",
-    submissions: 15,
-    status: "published",
-  },
-  {
-    id: "5",
-    title: "English Literature: Shakespeare",
-    topic: "Literature",
-    questions: 25,
-    createdAt: "2023-04-20",
-    submissions: 22,
-    status: "draft",
-  },
-  {
-    id: "6",
-    title: "Geography: World Capitals",
-    topic: "Geography",
-    questions: 30,
-    createdAt: "2023-04-15",
-    submissions: 0,
-    status: "draft",
-  },
-]
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export default function TeacherQuizzes() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [topicFilter, setTopicFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
+  // state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [topicFilter, setTopicFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filter quizzes based on search term and filters
-  const filteredQuizzes = mockQuizzes.filter((quiz) => {
+  useEffect(() => {
+    fetchQuizzes();
+  }, []);
+
+  const fetchQuizzes = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/quiz/my-quizzes`, {
+        withCredentials: true,
+      });
+
+      const data = response.data.quizzes.map((quiz: any) => ({
+        id: quiz._id,
+        title: quiz.title,
+        topic: quiz.topic,
+        questions: quiz.questions.length,
+        createdAt: new Date(quiz.createdAt).toLocaleDateString(),
+        submissions: quiz.submissions.length,
+        status: quiz.isPublished ? "published" : "draft",
+        resultsPublished: quiz.resultsPublished || false, // ✅ ADD THIS
+      }));
+
+      setQuizzes(data);
+    } catch (error) {
+      console.error("Failed to fetch quizzes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const publishQuiz = async (quizId: string) => {
+    try {
+      await axios.put(
+        `${API_URL}/quiz/publish/${quizId}`,
+        {},
+        { withCredentials: true }
+      );
+      toast({
+        title: "Quiz Published",
+        description: "Your quiz has been published successfully.",
+      });
+      fetchQuizzes();
+    } catch (error: any) {
+      console.error("Publish quiz failed:", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to publish quiz.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const publishResults = async (quizId: string) => {
+    try {
+      await axios.put(
+        `${API_URL}/quiz/publish-result/${quizId}`,
+        {},
+        { withCredentials: true }
+      );
+      toast({
+        title: "Results Published",
+        description: "Quiz results have been published successfully.",
+      });
+      fetchQuizzes();
+    } catch (error: any) {
+      console.error("Publish result failed:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to publish results.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const filteredQuizzes = quizzes.filter((quiz) => {
     const matchesSearch =
       quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quiz.topic.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesTopic = topicFilter === "all" || quiz.topic === topicFilter
-    const matchesStatus = statusFilter === "all" || quiz.status === statusFilter
+      quiz.topic.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTopic = topicFilter === "all" || quiz.topic === topicFilter;
+    const matchesStatus =
+      statusFilter === "all" || quiz.status === statusFilter;
 
-    return matchesSearch && matchesTopic && matchesStatus
-  })
+    return matchesSearch && matchesTopic && matchesStatus;
+  });
 
-  // Get unique topics for filter
-  const topics = ["all", ...Array.from(new Set(mockQuizzes.map((quiz) => quiz.topic)))]
+  const topics = [
+    "all",
+    ...Array.from(new Set(quizzes.map((quiz) => quiz.topic))),
+  ];
 
   return (
     <TeacherLayout>
+      {/* Top section */}
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">My Quizzes</h1>
-            <p className="text-muted-foreground">Manage and organize all your quizzes</p>
+            <p className="text-muted-foreground">
+              Manage and organize all your quizzes
+            </p>
           </div>
           <Button asChild>
             <Link href="/teacher/quizzes/create">
@@ -102,6 +136,7 @@ export default function TeacherQuizzes() {
           </Button>
         </div>
 
+        {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -136,8 +171,13 @@ export default function TeacherQuizzes() {
           </Select>
         </div>
 
+        {/* Quizzes List */}
         <div className="space-y-4">
-          {filteredQuizzes.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-10">
+              <p className="text-muted-foreground">Loading quizzes...</p>
+            </div>
+          ) : filteredQuizzes.length > 0 ? (
             filteredQuizzes.map((quiz) => (
               <Card key={quiz.id}>
                 <CardContent className="p-6">
@@ -162,18 +202,35 @@ export default function TeacherQuizzes() {
                         <div>Submissions: {quiz.submissions}</div>
                       </div>
                     </div>
-                    <div className="flex gap-2 self-start">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/teacher/quizzes/${quiz.id}/edit`}>Edit</Link>
-                      </Button>
-                      {quiz.status === "published" && (
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/teacher/quizzes/${quiz.id}/results`}>Results</Link>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 self-start flex-wrap">
+                      {quiz.status === "draft" && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => publishQuiz(quiz.id)}
+                        >
+                          Publish Quiz
                         </Button>
                       )}
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/teacher/quizzes/${quiz.id}`}>View</Link>
-                      </Button>
+                      {quiz.status === "published" && (
+                        <>
+                          {quiz.resultsPublished ? (
+                            <span className="text-green-600 font-medium text-sm">
+                              Result Published
+                            </span>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => publishResults(quiz.id)}
+                            >
+                              Publish Results
+                            </Button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -182,13 +239,13 @@ export default function TeacherQuizzes() {
           ) : (
             <div className="text-center py-10">
               <p className="text-muted-foreground">
-                No quizzes found. Try adjusting your filters or create a new quiz.
+                No quizzes found. Try adjusting your filters or create a new
+                quiz.
               </p>
             </div>
           )}
         </div>
       </div>
     </TeacherLayout>
-  )
+  );
 }
-
