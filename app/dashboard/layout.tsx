@@ -1,4 +1,4 @@
-import type React from "react"
+import type React from "react";
 import {
   SidebarProvider,
   Sidebar,
@@ -9,14 +9,14 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarInset,
-} from "@/components/ui/sidebar"
-import { BookOpen, Home, Plus, Settings, User } from "lucide-react"
-import Link from "next/link"
+} from "@/components/ui/sidebar";
+import { BookOpen, Home, Plus, Settings, User } from "lucide-react";
+import Link from "next/link";
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <SidebarProvider>
@@ -80,6 +80,5 @@ export default function DashboardLayout({
         <div className="p-4 md:p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
-

@@ -1,21 +1,42 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { ArrowRight, UserCircle2, KeyRound, GraduationCap, School, BookOpen } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+  ArrowRight,
+  UserCircle2,
+  KeyRound,
+  GraduationCap,
+  School,
+  BookOpen,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { useAuth } from "@/hooks/use-auth"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
-import { toast } from "@/components/ui/use-toast"
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useAuth } from "@/hooks/use-auth";
+import Header from "@/components/header";
+import Footer from "@/components/footer";
+import { toast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -27,11 +48,11 @@ const formSchema = z.object({
   role: z.enum(["teacher", "student"], {
     required_error: "Please select a role.",
   }),
-})
+});
 
 export default function SignInPage() {
-  const { signIn } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
+  const { signIn } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,25 +61,29 @@ export default function SignInPage() {
       password: "",
       role: "teacher",
     },
-  })
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      await signIn(values.email, values.password, values.role)
+      await signIn(values.email, values.password, values.role);
       toast({
         title: "Sign in successful",
         description: `Welcome back! You are now signed in as a ${values.role}.`,
-      })
-    } catch (error) {
+      });
+    } catch (error: any) {
+      console.log("🚀 ~ onSubmit ~ error:,,,,,,,,,", error);
+      const message =
+        error?.response?.data?.message ||
+        "Something went wrong. Please try again.";
       toast({
         title: "Sign in failed",
-        description: "Please check your credentials and try again.",
+        description: message,
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -73,7 +98,8 @@ export default function SignInPage() {
                 Welcome back to <span className="text-primary">QuizMaster</span>
               </h1>
               <p className="text-muted-foreground md:text-xl">
-                Sign in to continue your learning journey and access your quizzes
+                Sign in to continue your learning journey and access your
+                quizzes
               </p>
             </div>
             <div className="flex flex-col gap-4 text-muted-foreground">
@@ -100,11 +126,16 @@ export default function SignInPage() {
           <Card className="w-full max-w-md mx-auto">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
-              <CardDescription>Enter your credentials to access your account</CardDescription>
+              <CardDescription>
+                Enter your credentials to access your account
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="email"
@@ -114,7 +145,12 @@ export default function SignInPage() {
                         <FormControl>
                           <div className="relative">
                             <UserCircle2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input type="email" placeholder="john.doe@example.com" className="pl-10" {...field} />
+                            <Input
+                              type="email"
+                              placeholder="john.doe@example.com"
+                              className="pl-10"
+                              {...field}
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -130,7 +166,11 @@ export default function SignInPage() {
                         <FormControl>
                           <div className="relative">
                             <KeyRound className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input type="password" className="pl-10" {...field} />
+                            <Input
+                              type="password"
+                              className="pl-10"
+                              {...field}
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -144,7 +184,11 @@ export default function SignInPage() {
                       <FormItem className="space-y-3">
                         <FormLabel>I am a</FormLabel>
                         <FormControl>
-                          <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4">
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className="flex gap-4"
+                          >
                             <FormItem className="flex items-center space-x-2 space-y-0">
                               <FormControl>
                                 <RadioGroupItem value="teacher" />
@@ -170,7 +214,10 @@ export default function SignInPage() {
                     )}
                   />
                   <div className="flex items-center justify-end">
-                    <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm text-primary hover:underline"
+                    >
                       Forgot password?
                     </Link>
                   </div>
@@ -193,7 +240,10 @@ export default function SignInPage() {
             <CardFooter className="flex flex-col space-y-4">
               <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}
-                <Link href="/signup" className="text-primary font-medium hover:underline">
+                <Link
+                  href="/signup"
+                  className="text-primary font-medium hover:underline"
+                >
                   Sign Up
                 </Link>
               </div>
@@ -202,7 +252,9 @@ export default function SignInPage() {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                  <span className="bg-card px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -212,6 +264,16 @@ export default function SignInPage() {
                 <Button variant="outline" className="w-full">
                   Microsoft
                 </Button>
+                <Button
+                  onClick={() =>
+                    toast({
+                      title: "Test Toast",
+                      description: "Should appear now",
+                    })
+                  }
+                >
+                  Test Toast
+                </Button>
               </div>
             </CardFooter>
           </Card>
@@ -219,6 +281,5 @@ export default function SignInPage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }
-

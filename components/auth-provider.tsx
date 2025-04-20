@@ -1,24 +1,33 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { createContext, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import React, { createContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { authService } from "@/services/authService";
+import Cookies from "js-cookie";
 
 type User = {
-  id: string
-  name: string
-  email: string
-  role: "teacher" | "student"
-}
+  _id: string;
+  name: string;
+  email: string;
+  role: "teacher" | "student";
+};
 
 type AuthContextType = {
-  user: User | null
-  signIn: (email: string, password: string, role: "teacher" | "student") => Promise<void>
-  signUp: (name: string, email: string, password: string, role: "teacher" | "student") => Promise<void>
-  signOut: () => void
-  loading: boolean
-}
+  user: User | null;
+  signIn: (
+    email: string,
+    password: string,
+    role: "teacher" | "student"
+  ) => Promise<void>;
+  signUp: (
+    name: string,
+    email: string,
+    password: string,
+    role: "teacher" | "student"
+  ) => Promise<void>;
+  signOut: () => void;
+  loading: boolean;
+};
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -26,88 +35,83 @@ export const AuthContext = createContext<AuthContextType>({
   signUp: async () => {},
   signOut: () => {},
   loading: true,
-})
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // Check if user is logged in on initial load
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-    setLoading(false)
-  }, [])
+    const loadUser = async () => {
+      try {
+        const currentUser = await authService.getCurrentUserFromServer();
+        setUser(currentUser);
+      } catch (error) {
+        console.error("Failed to load user:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const signIn = async (email: string, password: string, role: "teacher" | "student") => {
-    setLoading(true)
+    loadUser();
+  }, []);
+
+  const signIn = async (
+    email: string,
+    password: string,
+    role: "teacher" | "student"
+  ) => {
+    setLoading(true);
     try {
-      // In a real app, you would make an API call to authenticate
-      // For demo purposes, we'll simulate a successful login
-      const mockUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        name: email.split("@")[0],
-        email,
-        role,
-      }
-
-      // Store user in localStorage (in a real app, you'd use cookies or tokens)
-      localStorage.setItem("user", JSON.stringify(mockUser))
-      setUser(mockUser)
-
-      // Redirect based on role
-      if (role === "teacher") {
-        router.push("/teacher/dashboard")
-      } else {
-        router.push("/student/dashboard")
-      }
+      await authService.signIn(email, password, role); // ✅ only signin
+      const currentUser = await authService.getCurrentUserFromServer(); // ✅ fetch real user
+      setUser(currentUser);
+      router.push(`/${currentUser.role}/dashboard`); // ✅ use currentUser.role
     } catch (error) {
-      console.error("Sign in failed:", error)
-      throw error
+      throw error;
+      console.error("Sign in failed:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const signUp = async (name: string, email: string, password: string, role: "teacher" | "student") => {
-    setLoading(true)
+  const signUp = async (
+    name: string,
+    email: string,
+    password: string,
+    role: "teacher" | "student"
+  ) => {
+    setLoading(true);
     try {
-      // In a real app, you would make an API call to register
-      // For demo purposes, we'll simulate a successful registration
-      const mockUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        name,
-        email,
-        role,
-      }
-
-      // Store user in localStorage (in a real app, you'd use cookies or tokens)
-      localStorage.setItem("user", JSON.stringify(mockUser))
-      setUser(mockUser)
-
-      // Redirect based on role
-      if (role === "teacher") {
-        router.push("/teacher/dashboard")
-      } else {
-        router.push("/student/dashboard")
-      }
+      const data = await authService.signUp(name, email, password, role);
+      Cookies.set("user", JSON.stringify(data.user), {
+        expires: 7,
+        secure: true,
+      });
+      setUser(data.user);
+      router.push(`/${role}/dashboard`);
     } catch (error) {
-      console.error("Sign up failed:", error)
-      throw error
+      console.error("Sign up failed:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const signOut = () => {
-    localStorage.removeItem("user")
-    setUser(null)
-    router.push("/")
-  }
+  const signOut = async () => {
+    try {
+      await authService.signOut();
+      Cookies.remove("user");
+      setUser(null);
+      router.push("/");
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    }
+  };
 
-  return <AuthContext.Provider value={{ user, signIn, signUp, signOut, loading }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user, signIn, signUp, signOut, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
-
