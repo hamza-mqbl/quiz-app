@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -88,7 +88,9 @@ const formSchema = z.object({
 type QuizFormValues = z.infer<typeof formSchema>;
 
 export default function EditQuizPage({ params }: { params: { id: string } }) {
-  const quizId = params.id;
+  // const quizId = params.id;
+  const { id: quizId } = useParams();
+
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
