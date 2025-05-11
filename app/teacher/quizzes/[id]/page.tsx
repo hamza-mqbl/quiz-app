@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -32,7 +32,8 @@ import TeacherLayout from "@/components/teacher-layout";
 import { toast } from "@/components/ui/use-toast";
 
 export default function ViewQuizPage({ params }: { params: { id: string } }) {
-  const quizId = params.id;
+  // const quizId = params.id;
+  const { id: quizId } = useParams();
   const router = useRouter();
   const [quiz, setQuiz] = useState<any>(null);
   const [loading, setLoading] = useState(true);
