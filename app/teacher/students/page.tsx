@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search,
@@ -56,6 +56,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import TeacherLayout from "@/components/teacher-layout";
+import axios from "axios";
 
 // Mock data for students
 const mockStudents = [
@@ -219,15 +220,66 @@ export default function StudentsPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [students, setStudents] = useState([]);
+  const [performanceData, setPerformanceData] = useState([]);
+
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: "ascending" | "descending";
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/quiz/students/my-students`,
+          {
+            withCredentials: true,
+          }
+        );
+        setStudents(res.data.students || []);
+      } catch (err) {
+        console.error("Failed to fetch students:", err);
+      }
+    };
+    const fetchPerformance = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/quiz/subjects-performance`,
+          {
+            withCredentials: true,
+          }
+        );
+        setPerformanceData(res.data.performance || []);
+        console.log("📊 Performance Data:", res.data);
+      } catch (err) {
+        console.error("Failed to fetch performance:", err);
+      }
+    };
+
+    const fetchActivity = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/quiz/students/activity-log`,
+          {
+            withCredentials: true,
+          }
+        );
+        console.log("📝 Activity Log:", res.data);
+      } catch (err) {
+        console.error("Failed to fetch activity log:", err);
+      }
+    };
+
+    fetchStudents();
+    fetchPerformance();
+    fetchActivity();
+  }, []);
 
   // Filter students based on search term and status filter
-  const filteredStudents = mockStudents.filter((student) => {
+  // Filter students based on search term and status filter
+  const filteredStudents = students.filter((student) => {
     const matchesSearch =
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -317,36 +369,12 @@ export default function StudentsPage() {
               Manage your students and track their progress
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleExportData}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Exporting...
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  Export Data
-                </>
-              )}
-            </Button>
-            <Button onClick={handleAddStudent}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Add Student
-            </Button>
-          </div>
         </div>
 
         <Tabs defaultValue="all-students" className="space-y-4">
           <TabsList>
             <TabsTrigger value="all-students">All Students</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="recent-activity">Recent Activity</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all-students" className="space-y-4">
@@ -492,13 +520,13 @@ export default function StudentsPage() {
                                 >
                                   View Details
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
+                                {/* <DropdownMenuItem
                                   onClick={() =>
                                     handleSendMessage(student.id, student.name)
                                   }
                                 >
                                   Send Message
-                                </DropdownMenuItem>
+                                </DropdownMenuItem> */}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   onClick={() =>
@@ -509,7 +537,7 @@ export default function StudentsPage() {
                                 >
                                   View Results
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
+                                {/* <DropdownMenuItem
                                   onClick={() =>
                                     router.push(
                                       `/teacher/students/${student.id}/edit`
@@ -517,7 +545,7 @@ export default function StudentsPage() {
                                   }
                                 >
                                   Edit Student
-                                </DropdownMenuItem>
+                                </DropdownMenuItem> */}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -536,7 +564,7 @@ export default function StudentsPage() {
               <CardFooter className="flex items-center justify-between border-t p-4">
                 <div className="text-sm text-muted-foreground">
                   Showing <strong>{sortedStudents.length}</strong> of{" "}
-                  <strong>{mockStudents.length}</strong> students
+                  <strong>{students.length}</strong> students
                 </div>
                 <div className="text-sm text-muted-foreground">
                   <Button variant="outline" size="sm" disabled>
@@ -564,10 +592,10 @@ export default function StudentsPage() {
                 <CardContent>
                   <div className="text-2xl font-bold">
                     {Math.round(
-                      mockStudents.reduce(
+                      students.reduce(
                         (acc, student) => acc + student.avgScore,
                         0
-                      ) / mockStudents.length
+                      ) / students.length
                     )}
                     %
                   </div>
@@ -575,7 +603,15 @@ export default function StudentsPage() {
                     Across all students
                   </p>
                   <div className="mt-4 h-2">
-                    <Progress value={85} className="h-2" />
+                    <Progress
+                      value={Math.round(
+                        students.reduce(
+                          (acc, student) => acc + student.avgScore,
+                          0
+                        ) / students.length
+                      )}
+                      className="h-2"
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -587,7 +623,7 @@ export default function StudentsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {mockStudents.reduce(
+                    {students.reduce(
                       (acc, student) => acc + student.quizzesTaken,
                       0
                     )}
@@ -606,13 +642,12 @@ export default function StudentsPage() {
                 <CardContent>
                   <div className="text-2xl font-bold">
                     {
-                      mockStudents.filter(
-                        (student) => student.status === "active"
-                      ).length
+                      students.filter((student) => student.status === "active")
+                        .length
                     }
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Out of {mockStudents.length} total students
+                    Out of {students.length} total students
                   </p>
                   <div className="mt-4 h-2">
                     <Progress
@@ -639,7 +674,7 @@ export default function StudentsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockPerformanceData.map((subject) => (
+                  {performanceData.map((subject) => (
                     <div key={subject.subject} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -688,7 +723,7 @@ export default function StudentsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockStudents
+                  {students
                     .sort((a, b) => b.avgScore - a.avgScore)
                     .slice(0, 5)
                     .map((student, index) => (
@@ -725,119 +760,6 @@ export default function StudentsPage() {
                         </div>
                       </div>
                     ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="recent-activity" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Student Activity</CardTitle>
-                <CardDescription>
-                  Latest quiz attempts and completions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {mockRecentActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="flex items-start gap-4 border-b pb-4 last:border-0 last:pb-0"
-                    >
-                      <Avatar>
-                        <AvatarImage
-                          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${activity.studentName}`}
-                          alt={activity.studentName}
-                        />
-                        <AvatarFallback>
-                          {activity.studentName.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                          <div>
-                            <div className="font-medium">
-                              {activity.studentName}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {activity.action}{" "}
-                              <span className="font-medium">
-                                {activity.quizName}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {activity.score !== null ? (
-                              <Badge
-                                variant="outline"
-                                className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-                              >
-                                Score: {activity.score}%
-                              </Badge>
-                            ) : activity.action === "Started quiz" ? (
-                              <Badge
-                                variant="outline"
-                                className="bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
-                              >
-                                In Progress
-                              </Badge>
-                            ) : (
-                              <Badge
-                                variant="outline"
-                                className="bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
-                              >
-                                Abandoned
-                              </Badge>
-                            )}
-                            <div className="text-xs text-muted-foreground">
-                              {new Date(activity.date).toLocaleDateString()}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Activity Summary</CardTitle>
-                <CardDescription>
-                  Overview of student activity in the past week
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-2">
-                      <CheckCircle className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="text-2xl font-bold">12</div>
-                    <div className="text-sm text-muted-foreground text-center">
-                      Quizzes Completed
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-2">
-                      <Clock className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="text-2xl font-bold">5</div>
-                    <div className="text-sm text-muted-foreground text-center">
-                      Quizzes In Progress
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-2">
-                      <XCircle className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="text-2xl font-bold">3</div>
-                    <div className="text-sm text-muted-foreground text-center">
-                      Quizzes Abandoned
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
