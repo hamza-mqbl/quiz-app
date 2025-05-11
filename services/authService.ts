@@ -1,6 +1,4 @@
 import axios from "axios";
-import Cookies from "js-cookie";
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const authService = {
@@ -29,7 +27,7 @@ export const authService = {
 
   async signOut() {
     await axios.post(
-      `${API_URL}//api/auth/logout`,
+      `${API_URL}/api/auth/logout`,
       {},
       { withCredentials: true }
     );
