@@ -1,9 +1,10 @@
-import Link from "next/link"
-import Image from "next/image"
-import { ArrowRight, BookOpen, CheckCircle, Brain, Award } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowRight, BookOpen, CheckCircle, Brain, Award } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Header from "@/components/header";
+import Footer from "@/components/footer";
+import { toast } from "@/hooks/use-toast";
 
 export default function Home() {
   return (
@@ -20,11 +21,12 @@ export default function Home() {
                 </div>
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl/none animate-fade-up">
-                    Learn, Test, Excel with <span className="text-primary">QuizMaster</span>
+                    Learn, Test, Excel with{" "}
+                    <span className="text-primary">QuizMaster</span>
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl lg:text-base xl:text-xl animate-fade-up">
-                    The ultimate platform for teachers to create engaging quizzes and for students to test their
-                    knowledge.
+                    The ultimate platform for teachers to create engaging
+                    quizzes and for students to test their knowledge.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row animate-fade-up">
@@ -34,7 +36,12 @@ export default function Home() {
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
-                  <Button variant="outline" size="lg" asChild className="rounded-full">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    asChild
+                    className="rounded-full"
+                  >
                     <Link href="/signin">Sign In</Link>
                   </Button>
                 </div>
@@ -68,8 +75,12 @@ export default function Home() {
                         />
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col items-center justify-end p-8">
-                        <h3 className="text-white text-xl font-bold mb-2">Interactive Quiz Experience</h3>
-                        <p className="text-white/80 text-sm text-center">Engage with beautiful quizzes on any device</p>
+                        <h3 className="text-white text-xl font-bold mb-2">
+                          Interactive Quiz Experience
+                        </h3>
+                        <p className="text-white/80 text-sm text-center">
+                          Engage with beautiful quizzes on any device
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -90,7 +101,8 @@ export default function Home() {
                   Everything you need for interactive learning
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Powerful tools for teachers and students to create, take, and analyze quizzes
+                  Powerful tools for teachers and students to create, take, and
+                  analyze quizzes
                 </p>
               </div>
             </div>
@@ -101,7 +113,8 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-bold">For Teachers</h3>
                 <p className="text-center text-muted-foreground">
-                  Create, manage, and analyze quizzes with our intuitive interface
+                  Create, manage, and analyze quizzes with our intuitive
+                  interface
                 </p>
                 <ul className="mt-2 space-y-2 text-sm">
                   <li className="flex items-center">
@@ -152,7 +165,8 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-bold">Analytics</h3>
                 <p className="text-center text-muted-foreground">
-                  Detailed insights and performance metrics for continuous improvement
+                  Detailed insights and performance metrics for continuous
+                  improvement
                 </p>
                 <ul className="mt-2 space-y-2 text-sm">
                   <li className="flex items-center">
@@ -184,7 +198,8 @@ export default function Home() {
                   Simple steps to get started
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Begin your learning journey with QuizMaster in just three simple steps
+                  Begin your learning journey with QuizMaster in just three
+                  simple steps
                 </p>
               </div>
             </div>
@@ -242,19 +257,31 @@ export default function Home() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-8 text-center">
               <div className="space-y-4">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Ready to Get Started?</h2>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                  Ready to Get Started?
+                </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Join thousands of teachers and students already using QuizMaster
+                  Join thousands of teachers and students already using
+                  QuizMaster
                 </p>
               </div>
               <div className="flex flex-col gap-4 min-[400px]:flex-row">
-                <Button asChild size="lg" className="rounded-full px-8 shadow-lg shadow-primary/20">
+                <Button
+                  asChild
+                  size="lg"
+                  className="rounded-full px-8 shadow-lg shadow-primary/20"
+                >
                   <Link href="/signup">
                     Create an Account
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" asChild className="rounded-full">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className="rounded-full"
+                >
                   <Link href="/signin">Sign In</Link>
                 </Button>
               </div>
@@ -278,6 +305,5 @@ export default function Home() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }
-

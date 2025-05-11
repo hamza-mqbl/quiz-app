@@ -38,6 +38,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import axios from "axios";
+import { toast } from "@/hooks/use-toast";
 
 // Mock data for chart
 const activityData = [
