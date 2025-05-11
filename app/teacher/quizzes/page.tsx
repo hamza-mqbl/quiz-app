@@ -204,7 +204,7 @@ export default function TeacherQuizzes() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2 self-start flex-wrap">
+                    <div className="flex gap-2 self-start flex-wrap justify-center items-center">
                       {quiz.status === "draft" && (
                         <Button
                           variant="default"
@@ -231,6 +231,16 @@ export default function TeacherQuizzes() {
                           )}
                         </>
                       )}
+                      {quiz.status === "draft" && (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/teacher/quizzes/${quiz.id}/edit`}>
+                            Edit
+                          </Link>
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/teacher/quizzes/${quiz.id}`}>View</Link>
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
