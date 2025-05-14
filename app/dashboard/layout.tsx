@@ -10,7 +10,7 @@ import {
   SidebarFooter,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import { BookOpen, Home, Plus, Settings, User } from "lucide-react";
+import { BookOpen, Home, Plus, Settings, User, UserCog } from "lucide-react";
 import Link from "next/link";
 
 export default function DashboardLayout({
@@ -56,8 +56,8 @@ export default function DashboardLayout({
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <Link href="/dashboard/settings">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
+                  <UserCog className="h-4 w-4" />
+                  <span>Profile</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

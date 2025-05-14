@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, Clock, Users, Plus } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookOpen, Clock, Users, Plus } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
   // Mock data for dashboard
@@ -24,7 +24,7 @@ export default function DashboardPage() {
       icon: Clock,
       description: "Quizzes in the last 7 days",
     },
-  ]
+  ];
 
   // Mock data for recent quizzes
   const recentQuizzes = [
@@ -52,14 +52,16 @@ export default function DashboardPage() {
       createdAt: "2023-05-05",
       submissions: 32,
     },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here&apos;s an overview of your quizzes.</p>
+          <p className="text-muted-foreground">
+            Welcome back! Here&apos;s an overview of your quizzes.
+          </p>
         </div>
         <Button asChild>
           <Link href="/dashboard/create-quiz">
@@ -73,12 +75,16 @@ export default function DashboardPage() {
         {stats.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">{stat.description}</p>
+              <p className="text-xs text-muted-foreground">
+                {stat.description}
+              </p>
             </CardContent>
           </Card>
         ))}
@@ -115,6 +121,5 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

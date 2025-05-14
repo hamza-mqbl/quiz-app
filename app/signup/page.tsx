@@ -1,20 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { useAuth } from "@/hooks/use-auth"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
-import { toast } from "@/components/ui/use-toast"
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useAuth } from "@/hooks/use-auth";
+import Header from "@/components/header";
+import Footer from "@/components/footer";
+import { toast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 const formSchema = z
   .object({
@@ -35,12 +50,25 @@ const formSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
-  })
+  });
 
 export default function SignUpPage() {
-  const { signUp } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
+  const { signUp } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
+  const router = useRouter();
+  const { user } = useAuth();
+  console.log("🚀 ~ SignInPage ~ user:", user);
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === "teacher") {
+        router.replace("/teacher/dashboard");
+      } else if (user.role === "student") {
+        router.replace("/student/dashboard");
+      }
+    }
+  }, [user, router]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,25 +78,26 @@ export default function SignUpPage() {
       confirmPassword: "",
       role: "teacher",
     },
-  })
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      await signUp(values.name, values.email, values.password, values.role)
+      await signUp(values.name, values.email, values.password, values.role);
       toast({
         title: "Account created",
         description: `Your ${values.role} account has been created successfully.`,
-      })
+      });
     } catch (error) {
       toast({
         title: "Sign up failed",
-        description: "There was an error creating your account. Please try again.",
+        description:
+          "There was an error creating your account. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -79,11 +108,16 @@ export default function SignUpPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl">Sign Up</CardTitle>
-            <CardDescription>Create a new account to start using QuizMaster</CardDescription>
+            <CardDescription>
+              Create a new account to start using MLQDPS
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="name"
@@ -104,7 +138,11 @@ export default function SignUpPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="john.doe@example.com" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="john.doe@example.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -143,18 +181,26 @@ export default function SignUpPage() {
                     <FormItem className="space-y-3">
                       <FormLabel>I am a</FormLabel>
                       <FormControl>
-                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex space-x-4">
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          className="flex space-x-4"
+                        >
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
                               <RadioGroupItem value="teacher" />
                             </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">Teacher</FormLabel>
+                            <FormLabel className="font-normal cursor-pointer">
+                              Teacher
+                            </FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
                               <RadioGroupItem value="student" />
                             </FormControl>
-                            <FormLabel className="font-normal cursor-pointer">Student</FormLabel>
+                            <FormLabel className="font-normal cursor-pointer">
+                              Student
+                            </FormLabel>
                           </FormItem>
                         </RadioGroup>
                       </FormControl>
@@ -180,6 +226,5 @@ export default function SignUpPage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }
-

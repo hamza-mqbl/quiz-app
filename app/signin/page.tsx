@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -37,6 +37,8 @@ import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { toast } from "@/hooks/use-toast";
+// ✅ Correct import for Next.js App Router
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -53,6 +55,19 @@ const formSchema = z.object({
 export default function SignInPage() {
   const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { user } = useAuth();
+  console.log("🚀 ~ SignInPage ~ user:", user);
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === "teacher") {
+        router.replace("/teacher/dashboard");
+      } else if (user.role === "student") {
+        router.replace("/student/dashboard");
+      }
+    }
+  }, [user, router]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -95,7 +110,7 @@ export default function SignInPage() {
           <div className="hidden md:flex flex-col justify-center space-y-6">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                Welcome back to <span className="text-primary">QuizMaster</span>
+                Welcome back to <span className="text-primary">MLQDPS</span>
               </h1>
               <p className="text-muted-foreground md:text-xl">
                 Sign in to continue your learning journey and access your

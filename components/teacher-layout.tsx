@@ -1,30 +1,43 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { BookOpen, Home, Plus, Settings, User, Users, BarChart } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  BookOpen,
+  Home,
+  Plus,
+  Settings,
+  User,
+  Users,
+  BarChart,
+  UserCog,
+} from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import Header from "@/components/header";
+import Footer from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
-export default function TeacherLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
-  const router = useRouter()
+export default function TeacherLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
   // Redirect if not logged in or not a teacher
   useEffect(() => {
     if (!loading && (!user || user.role !== "teacher")) {
-      router.push("/signin")
+      router.push("/signin");
     }
-  }, [user, loading, router])
+  }, [user, loading, router]);
 
   if (loading || !user) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -64,15 +77,9 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 </Link>
               </Button>
               <Button variant="ghost" className="w-full justify-start" asChild>
-                <Link href="/teacher/analytics">
-                  <BarChart className="mr-2 h-4 w-4" />
-                  Analytics
-                </Link>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" asChild>
                 <Link href="/teacher/profile">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
+                  <UserCog className="mr-2 h-4 w-4" />
+                  Profile
                 </Link>
               </Button>
             </nav>
@@ -82,6 +89,5 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
       </div>
       <Footer />
     </div>
-  )
+  );
 }
-
