@@ -22,7 +22,7 @@ export default function Home() {
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl/none animate-fade-up">
                     Learn, Test, Excel with{" "}
-                    <span className="text-primary">QuizMaster</span>
+                    <span className="text-primary">MLQDPS</span>
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl lg:text-base xl:text-xl animate-fade-up">
                     The ultimate platform for teachers to create engaging
@@ -198,8 +198,8 @@ export default function Home() {
                   Simple steps to get started
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Begin your learning journey with QuizMaster in just three
-                  simple steps
+                  Begin your learning journey with MLQDPS in just three simple
+                  steps
                 </p>
               </div>
             </div>
@@ -261,8 +261,7 @@ export default function Home() {
                   Ready to Get Started?
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Join thousands of teachers and students already using
-                  QuizMaster
+                  Join thousands of teachers and students already using MLQDPS
                 </p>
               </div>
               <div className="flex flex-col gap-4 min-[400px]:flex-row">

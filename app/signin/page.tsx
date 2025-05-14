@@ -95,7 +95,7 @@ export default function SignInPage() {
           <div className="hidden md:flex flex-col justify-center space-y-6">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                Welcome back to <span className="text-primary">QuizMaster</span>
+                Welcome back to <span className="text-primary">MLQDPS</span>
               </h1>
               <p className="text-muted-foreground md:text-xl">
                 Sign in to continue your learning journey and access your
