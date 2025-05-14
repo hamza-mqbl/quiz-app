@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -37,6 +37,8 @@ import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { toast } from "@/hooks/use-toast";
+// ✅ Correct import for Next.js App Router
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -53,6 +55,19 @@ const formSchema = z.object({
 export default function SignInPage() {
   const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { user } = useAuth();
+  console.log("🚀 ~ SignInPage ~ user:", user);
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === "teacher") {
+        router.replace("/teacher/dashboard");
+      } else if (user.role === "student") {
+        router.replace("/student/dashboard");
+      }
+    }
+  }, [user, router]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
