@@ -566,17 +566,6 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-        <Button
-          onClick={() => {
-            console.log("clicked");
-            toast({
-              title: "Test Toast",
-              description: "Should appear now",
-            });
-          }}
-        >
-          Test Toast
-        </Button>
       </main>
       <Footer />
     </div>
