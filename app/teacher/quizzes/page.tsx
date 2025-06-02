@@ -241,6 +241,13 @@ export default function TeacherQuizzes() {
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/teacher/quizzes/${quiz.id}`}>View</Link>
                       </Button>
+                      {quiz.status === "published" && (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/teacher/quizzes/${quiz.id}/result`}>
+                            result
+                          </Link>
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
