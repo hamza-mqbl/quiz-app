@@ -45,6 +45,7 @@ export default function Header() {
 
   const isTeacher = user?.role === "teacher";
   const isStudent = user?.role === "student";
+  const isAdmin = user?.role === "admin";
 
   const routes = [
     { href: "/", label: "Home" },
@@ -60,6 +61,13 @@ export default function Header() {
           { href: "/student/dashboard", label: "Dashboard" },
           { href: "/student/quizzes", label: "Available Quizzes" },
           { href: "/student/results", label: "My Results" },
+        ]
+      : []),
+    ...(isAdmin
+      ? [
+          { href: "/admin/", label: "Admin Dashboard" },
+          { href: "/admin/users", label: "Manage Users" },
+          { href: "/admin/profile", label: "Settings" },
         ]
       : []),
   ];
@@ -198,23 +206,37 @@ export default function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {/* Profile Link */}
                   <DropdownMenuItem asChild>
                     <Link
-                      href={isTeacher ? "/teacher/profile" : "/student/profile"}
+                      href={
+                        isTeacher
+                          ? "/teacher/profile"
+                          : isStudent
+                          ? "/student/profile"
+                          : "/admin/profile" // Assuming an admin has a profile page
+                      }
                     >
                       Profile
                     </Link>
                   </DropdownMenuItem>
+
+                  {/* Dashboard Link */}
                   <DropdownMenuItem asChild>
                     <Link
                       href={
-                        isTeacher ? "/teacher/dashboard" : "/student/dashboard"
+                        isTeacher
+                          ? "/teacher/dashboard"
+                          : isStudent
+                          ? "/student/dashboard"
+                          : "/admin"
                       }
                     >
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+
                   <DropdownMenuItem onClick={() => signOut()}>
                     Sign out
                   </DropdownMenuItem>

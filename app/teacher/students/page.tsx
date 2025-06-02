@@ -162,59 +162,6 @@ const mockStudents = [
   },
 ];
 
-// Mock data for student performance
-const mockPerformanceData = [
-  { subject: "Biology", avgScore: 85, quizzesTaken: 3, highestScore: 95 },
-  { subject: "Chemistry", avgScore: 78, quizzesTaken: 2, highestScore: 88 },
-  { subject: "Physics", avgScore: 92, quizzesTaken: 2, highestScore: 98 },
-  { subject: "Mathematics", avgScore: 80, quizzesTaken: 3, highestScore: 90 },
-  { subject: "History", avgScore: 88, quizzesTaken: 2, highestScore: 94 },
-];
-
-// Mock data for recent activities
-const mockRecentActivities = [
-  {
-    id: "1",
-    studentName: "Sarah Johnson",
-    action: "Completed quiz",
-    quizName: "Biology Basics",
-    score: 95,
-    date: "2023-05-10",
-  },
-  {
-    id: "2",
-    studentName: "Michael Chen",
-    action: "Completed quiz",
-    quizName: "Chemistry Fundamentals",
-    score: 92,
-    date: "2023-05-11",
-  },
-  {
-    id: "3",
-    studentName: "Ashley Williams",
-    action: "Started quiz",
-    quizName: "Physics Mechanics",
-    score: null,
-    date: "2023-05-09",
-  },
-  {
-    id: "4",
-    studentName: "Emma Thompson",
-    action: "Completed quiz",
-    quizName: "World History",
-    score: 85,
-    date: "2023-05-08",
-  },
-  {
-    id: "5",
-    studentName: "David Wilson",
-    action: "Abandoned quiz",
-    quizName: "Advanced Mathematics",
-    score: null,
-    date: "2023-05-05",
-  },
-];
-
 export default function StudentsPage() {
   const router = useRouter();
   const { toast } = useToast();

@@ -12,6 +12,7 @@ import {
   GraduationCap,
   School,
   BookOpen,
+  ShieldCheck, // New icon for admin
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,6 @@ import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { toast } from "@/hooks/use-toast";
-// ✅ Correct import for Next.js App Router
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
@@ -47,7 +47,7 @@ const formSchema = z.object({
   password: z.string().min(1, {
     message: "Password is required.",
   }),
-  role: z.enum(["teacher", "student"], {
+  role: z.enum(["teacher", "student", "admin"], {
     required_error: "Please select a role.",
   }),
 });
@@ -65,6 +65,8 @@ export default function SignInPage() {
         router.replace("/teacher/dashboard");
       } else if (user.role === "student") {
         router.replace("/student/dashboard");
+      } else if (user.role === "admin") {
+        router.replace("/admin/"); // Add admin route
       }
     }
   }, [user, router]);
@@ -74,7 +76,7 @@ export default function SignInPage() {
     defaultValues: {
       email: "",
       password: "",
-      role: "teacher",
+      role: "teacher", // Default role
     },
   });
 
@@ -88,9 +90,9 @@ export default function SignInPage() {
         description: `Welcome back! You are now signed in as a ${values.role}.`,
       });
     } catch (error: any) {
-      console.log("🚀 ~ onSubmit ~ error:,,,,,,,,,", error);
+      console.log("🚀 ~ onSubmit ~ error:,,,,,,,,,,,,,,,,,,,,,,,,,", error);
       const message =
-        error?.response?.data?.message ||
+        error.response.data.message ||
         "Something went wrong. Please try again.";
       toast({
         title: "Sign in failed",
@@ -222,6 +224,15 @@ export default function SignInPage() {
                                 Student
                               </FormLabel>
                             </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="admin" />
+                              </FormControl>
+                              <FormLabel className="font-normal cursor-pointer flex items-center gap-1.5">
+                                <ShieldCheck className="h-4 w-4 text-primary" />
+                                Admin
+                              </FormLabel>
+                            </FormItem>
                           </RadioGroup>
                         </FormControl>
                         <FormMessage />
@@ -261,34 +272,6 @@ export default function SignInPage() {
                 >
                   Sign Up
                 </Link>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="w-full">
-                  Google
-                </Button>
-                <Button variant="outline" className="w-full">
-                  Microsoft
-                </Button>
-                <Button
-                  onClick={() =>
-                    toast({
-                      title: "Test Toast",
-                      description: "Should appear now",
-                    })
-                  }
-                >
-                  Test Toast
-                </Button>
               </div>
             </CardFooter>
           </Card>

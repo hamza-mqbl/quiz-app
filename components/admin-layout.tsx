@@ -5,14 +5,25 @@ import type React from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Home, Settings, User, Award, Clock } from "lucide-react";
+import {
+  BookOpen,
+  Home,
+  Settings,
+  User,
+  Users,
+  BarChart,
+  UserCog,
+  Shield,
+  Database,
+  Activity,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-export default function StudentLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -20,9 +31,9 @@ export default function StudentLayout({
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  // Redirect if not logged in or not a student
+  // Redirect if not logged in or not an admin
   useEffect(() => {
-    if (!loading && (!user || user.role !== "student")) {
+    if (!loading && (!user || user.role !== "admin")) {
       router.push("/signin");
     }
   }, [user, loading, router]);
@@ -38,31 +49,34 @@ export default function StudentLayout({
         <aside className="w-full md:w-64 bg-muted md:min-h-screen">
           <div className="p-4 space-y-4">
             <div className="flex items-center space-x-2">
-              <User className="h-5 w-5" />
-              <span className="font-medium">{user.name}</span>
+              <Shield className="h-5 w-5 text-primary" />
+              <span className="font-medium">{user?.name}</span>
+              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                Admin
+              </span>
             </div>
             <Separator />
             <nav className="space-y-1">
               <Button variant="ghost" className="w-full justify-start" asChild>
-                <Link href="/student/dashboard">
+                <Link href="/admin/">
                   <Home className="mr-2 h-4 w-4" />
                   Dashboard
                 </Link>
               </Button>
               <Button variant="ghost" className="w-full justify-start" asChild>
-                <Link href="/student/quizzes">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Available Quizzes
+                <Link href="/admin/users">
+                  <Users className="mr-2 h-4 w-4" />
+                  Manage Users
                 </Link>
               </Button>
               <Button variant="ghost" className="w-full justify-start" asChild>
-                <Link href="/student/results">
-                  <Award className="mr-2 h-4 w-4" />
-                  My Results
+                <Link href="/admin/teachers">
+                  <UserCog className="mr-2 h-4 w-4" />
+                  Teachers
                 </Link>
               </Button>
               <Button variant="ghost" className="w-full justify-start" asChild>
-                <Link href="/student/profile">
+                <Link href="/admin/profile">
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </Link>

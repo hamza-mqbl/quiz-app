@@ -49,7 +49,7 @@ const formSchema = z.object({
 
 type QuizFormValues = z.infer<typeof formSchema>;
 
-const CHEATING_WARNING_THRESHOLD = 2; // Number of tab switches before auto-submission
+const CHEATING_WARNING_THRESHOLD = 3; // Number of tab switches before auto-submission
 const FULLSCREEN_CHECK_INTERVAL = 1000; // Check fullscreen status every second
 
 export default function TakeQuizPage({ params }: { params: { id: string } }) {
@@ -402,21 +402,25 @@ export default function TakeQuizPage({ params }: { params: { id: string } }) {
     if (quizSubmittedRef.current) return; // Prevent multiple submissions
 
     quizSubmittedRef.current = true;
-    setQuizSubmitted(true);
 
     try {
       const answersObj = form.getValues().answers;
+      // Ensure all questions have an answer, default to "" if unanswered
       const answersArray = quizData.questions.map(
-        (q: any) => answersObj[q._id] || ""
-      ); // maintain order
+        (q: any) => answersObj[q._id] || "" // Default to empty string if no answer
+      );
+
+      console.log("Submitting answers:", answersArray); // Debug log
 
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/quiz/submit/${quizData._id}`,
         { answers: answersArray },
         { withCredentials: true }
       );
+      setQuizSubmitted(true);
 
-      const { score } = response.data;
+      const { score, feedback } = response.data;
+      console.log("🚀 ~ handleSubmitQuiz ~ feedback:", feedback);
       setScore(score);
       toast({ title: "Quiz submitted successfully!" });
 
@@ -641,17 +645,11 @@ export default function TakeQuizPage({ params }: { params: { id: string } }) {
         {quizSubmitted && (
           <Card>
             <CardHeader>
-              <CardTitle>Quiz Results</CardTitle>
-              <CardDescription>Your score is ready!</CardDescription>
+              <CardTitle>Quiz Submitted</CardTitle>
+              <CardDescription>
+                Your answers have been submitted successfully!
+              </CardDescription>
             </CardHeader>
-            <CardContent className="text-center space-y-6">
-              <div className="text-5xl font-bold">{Math.round(score)}%</div>
-              <p className="text-muted-foreground">
-                You answered{" "}
-                {Math.round((score / 100) * quizData?.questions?.length)} out of{" "}
-                {quizData?.questions?.length} correctly.
-              </p>
-            </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
                 <Link href="/student/dashboard">Back to Dashboard</Link>

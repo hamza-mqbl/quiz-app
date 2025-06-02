@@ -172,7 +172,15 @@ export default function ProfilePage() {
       console.log("Updating password:", values);
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/user/update-password`,
+        {
+          currentPassword: values.currentPassword,
+          newPassword: values.newPassword,
+          confirmPassword: values.confirmPassword,
+        },
+        { withCredentials: true }
+      );
 
       toast({
         title: "Password Updated",
@@ -201,24 +209,28 @@ export default function ProfilePage() {
   // Handle delete account
   const handleDeleteAccount = async () => {
     try {
-      // In a real app, you would make an API call to delete the user's account
-      console.log("Deleting account");
+      console.log("Deleting account...");
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/delete-account`,
+        {
+          withCredentials: true,
+        }
+      );
 
       toast({
         title: "Account Deleted",
         description: "Your account has been deleted successfully.",
       });
 
-      // Sign out the user
-      signOut();
+      // Sign out the user locally (clear state + redirect)
+      signOut(); // from your AuthProvider
     } catch (error) {
       console.error("Failed to delete account:", error);
       toast({
         title: "Delete Failed",
         description:
+          error?.response?.data?.message ||
           "There was an error deleting your account. Please try again.",
         variant: "destructive",
       });

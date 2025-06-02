@@ -54,16 +54,105 @@ export default function QuizResultDetailPage() {
     fetchQuizDetails();
   }, [id, router]);
 
+  // Function to format markdown-like feedback text
+  const formatFeedback = (feedback: string) => {
+    if (!feedback) return null;
+
+    return feedback.split("\n").map((line, index) => {
+      // Handle headers (###, ####)
+      if (line.startsWith("#### ")) {
+        return (
+          <h4
+            key={index}
+            className="font-semibold text-lg mt-4 mb-2 text-blue-600 dark:text-blue-400"
+          >
+            {line.replace("#### ", "")}
+          </h4>
+        );
+      }
+      if (line.startsWith("### ")) {
+        return (
+          <h3
+            key={index}
+            className="font-bold text-xl mt-6 mb-3 text-blue-700 dark:text-blue-300"
+          >
+            {line.replace("### ", "")}
+          </h3>
+        );
+      }
+
+      // Handle bold text (**text**)
+      if (line.includes("**")) {
+        const parts = line.split(/(\*\*.*?\*\*)/);
+        return (
+          <p key={index} className="mb-2 leading-relaxed">
+            {parts.map((part, partIndex) => {
+              if (part.startsWith("**") && part.endsWith("**")) {
+                return (
+                  <strong
+                    key={partIndex}
+                    className="font-semibold text-gray-800 dark:text-gray-200"
+                  >
+                    {part.slice(2, -2)}
+                  </strong>
+                );
+              }
+              return part;
+            })}
+          </p>
+        );
+      }
+
+      // Handle numbered lists
+      if (/^\d+\./.test(line.trim())) {
+        return (
+          <li key={index} className="ml-4 mb-1 list-decimal list-inside">
+            {line.replace(/^\d+\.\s*/, "")}
+          </li>
+        );
+      }
+
+      // Handle bullet points (-)
+      if (line.trim().startsWith("- ")) {
+        return (
+          <li key={index} className="ml-4 mb-1 list-disc list-inside">
+            {line.replace(/^\s*-\s*/, "")}
+          </li>
+        );
+      }
+
+      // Regular paragraphs
+      if (line.trim() === "") {
+        return <br key={index} />;
+      }
+
+      return (
+        <p key={index} className="mb-2 leading-relaxed">
+          {line}
+        </p>
+      );
+    });
+  };
+
   if (loading) {
-    return <div>Loading result details...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-lg">Loading result details...</div>
+      </div>
+    );
   }
 
   if (!resultData) {
-    return <div>No result found.</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-lg">No result found.</div>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-4xl mx-auto py-8 space-y-6">
+      {/* Score Summary Card */}
       <Card>
         <CardHeader>
           <CardTitle>Quiz Results: {resultData.title}</CardTitle>
@@ -113,6 +202,30 @@ export default function QuizResultDetailPage() {
             ))}
           </div>
         </CardContent>
+      </Card>
+
+      {/* Feedback Card */}
+      {resultData.feedback && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-blue-600">📝</span>
+              Personalized Feedback
+            </CardTitle>
+            <CardDescription>
+              Detailed feedback to help you improve your understanding
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              {formatFeedback(resultData.feedback)}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Return Button */}
+      <Card>
         <CardFooter>
           <Button asChild className="w-full">
             <Link href="/student/dashboard">Return to Dashboard</Link>

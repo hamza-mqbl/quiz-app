@@ -17,7 +17,7 @@ type AuthContextType = {
   signIn: (
     email: string,
     password: string,
-    role: "teacher" | "student"
+    role: "teacher" | "student" | "admin"
   ) => Promise<void>;
   signUp: (
     name: string,
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (
     email: string,
     password: string,
-    role: "teacher" | "student"
+    role: "teacher" | "student" | "admin"
   ) => {
     setLoading(true);
     try {
