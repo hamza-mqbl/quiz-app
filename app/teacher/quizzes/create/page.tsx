@@ -1,4 +1,3 @@
-// pages/teacher/create-quiz.tsx
 "use client";
 
 import { useContext, useState } from "react";
@@ -6,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
-import { Trash2, Plus, Save } from "lucide-react";
+import { Trash2, Plus, Save, MapPin } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,9 +29,11 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import TeacherLayout from "@/components/teacher-layout";
 import { AuthContext } from "@/components/auth-provider";
+import { LocationPicker } from "@/components/location-picker";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -40,6 +41,21 @@ const formSchema = z.object({
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),
   topic: z.string().min(2, { message: "Topic must be at least 2 characters." }),
   description: z.string().optional(),
+  timeLimit: z
+    .number()
+    .min(1, { message: "Time limit must be at least 1 minute" })
+    .max(300, { message: "Time limit cannot exceed 300 minutes (5 hours)" }),
+  enableLocationRestriction: z.boolean().default(false),
+  location: z
+    .object({
+      latitude: z.number(),
+      longitude: z.number(),
+      radius: z
+        .number()
+        .min(10, { message: "Radius must be at least 10 meters" }),
+      address: z.string(),
+    })
+    .optional(),
   questions: z
     .array(
       z.object({
@@ -76,6 +92,14 @@ export default function CreateQuizPage() {
       title: "",
       topic: "",
       description: "",
+      timeLimit: 30, // Default 30 minutes
+      enableLocationRestriction: false,
+      location: {
+        latitude: 0,
+        longitude: 0,
+        radius: 100,
+        address: "",
+      },
       questions: [
         { questionText: "", options: ["", "", "", ""], correctAnswer: "" },
       ],
@@ -87,6 +111,8 @@ export default function CreateQuizPage() {
     name: "questions",
   });
 
+  const enableLocationRestriction = form.watch("enableLocationRestriction");
+
   function generateQuizCode() {
     const characters =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -96,6 +122,15 @@ export default function CreateQuizPage() {
     }
     return code;
   }
+
+  const handleLocationSet = (locationData: {
+    latitude: number;
+    longitude: number;
+    radius: number;
+    address: string;
+  }) => {
+    form.setValue("location", locationData);
+  };
 
   async function onSubmit(values: QuizFormValues) {
     setIsSubmitting(true);
@@ -109,10 +144,29 @@ export default function CreateQuizPage() {
       return;
     }
 
+    // Validate location if restriction is enabled
+    if (values.enableLocationRestriction) {
+      if (
+        !values.location ||
+        values.location.latitude === 0 ||
+        values.location.longitude === 0
+      ) {
+        toast({
+          title: "Location Required",
+          description: "Please set a location for this quiz.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const payload = {
       ...values,
       createdBy: user._id,
       quizCode: generateQuizCode(),
+      // Only include location if restriction is enabled
+      location: values.enableLocationRestriction ? values.location : undefined,
     };
 
     try {
@@ -120,7 +174,14 @@ export default function CreateQuizPage() {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
-      toast({ title: "Quiz Created", description: "Quiz saved successfully." });
+
+      toast({
+        title: "Quiz Created",
+        description: values.enableLocationRestriction
+          ? "Quiz saved with location restrictions."
+          : "Quiz saved successfully.",
+      });
+
       router.push("/teacher/quizzes");
     } catch (error: any) {
       toast({
@@ -137,6 +198,7 @@ export default function CreateQuizPage() {
     <TeacherLayout>
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Create Quiz</h1>
+
         <div className="flex gap-4">
           <Button
             variant={generationMode === "manual" ? "default" : "outline"}
@@ -181,7 +243,10 @@ export default function CreateQuizPage() {
                   try {
                     const res = await axios.post(
                       `${API_URL}/api/quiz/generate`,
-                      { topic: aiTopic, numberOfQuestions: aiCount }
+                      {
+                        topic: aiTopic,
+                        numberOfQuestions: aiCount,
+                      }
                     );
                     form.setValue("title", `${aiTopic} Quiz`);
                     form.setValue("topic", aiTopic);
@@ -260,6 +325,76 @@ export default function CreateQuizPage() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="timeLimit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Time Limit (Minutes)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="e.g. 30"
+                          min="1"
+                          max="300"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value) || 1)
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Set the quiz duration in minutes (1-300 minutes)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Location Settings Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Location Settings
+                </CardTitle>
+                <CardDescription>
+                  Optionally restrict quiz access to specific locations.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="enableLocationRestriction"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Enable Location Restriction
+                        </FormLabel>
+                        <FormDescription>
+                          Students must be within a specific location to take
+                          this quiz.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {enableLocationRestriction && (
+                  <LocationPicker
+                    onLocationSet={handleLocationSet}
+                    initialLocation={form.getValues("location")}
+                  />
+                )}
               </CardContent>
             </Card>
 

@@ -7,7 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import axios from "axios";
-import { Clock, ArrowRight, ArrowLeft, AlertTriangle } from "lucide-react";
+import {
+  Clock,
+  ArrowRight,
+  ArrowLeft,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,8 +55,8 @@ const formSchema = z.object({
 
 type QuizFormValues = z.infer<typeof formSchema>;
 
-const CHEATING_WARNING_THRESHOLD = 3; // Number of tab switches before auto-submission
-const FULLSCREEN_CHECK_INTERVAL = 1000; // Check fullscreen status every second
+const CHEATING_WARNING_THRESHOLD = 3;
+const FULLSCREEN_CHECK_INTERVAL = 1000;
 
 export default function TakeQuizPage({ params }: { params: { id: string } }) {
   const { user, loading } = useAuth();
@@ -64,10 +70,10 @@ export default function TakeQuizPage({ params }: { params: { id: string } }) {
   const [score, setScore] = useState(0);
   const [showQuizCodeInput, setShowQuizCodeInput] = useState(true);
   const [quizCodeInput, setQuizCodeInput] = useState("");
+  const [isJoiningQuiz, setIsJoiningQuiz] = useState(false);
 
   // Anti-cheating state
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
-  console.log("🚀 ~ TakeQuizPage ~ tabSwitchCount:", tabSwitchCount);
   const [screenSizeViolations, setScreenSizeViolations] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
@@ -318,12 +324,12 @@ export default function TakeQuizPage({ params }: { params: { id: string } }) {
       }
     };
   }, [quizStarted, quizSubmitted, isFullscreen]);
+
   useEffect(() => {
     if (!quizStarted || quizSubmitted) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Tab") {
-        console.log("triger");
         event.preventDefault();
         showWarningToast(
           "Keyboard navigation detected!",
@@ -407,8 +413,8 @@ export default function TakeQuizPage({ params }: { params: { id: string } }) {
       const answersObj = form.getValues().answers;
       // Ensure all questions have an answer, default to "" if unanswered
       const answersArray = quizData.questions.map(
-        (q: any) => answersObj[q._id] || "" // Default to empty string if no answer
-      );
+        (q: any) => answersObj[q._id] || ""
+      ); // Default to empty string if no answer
 
       console.log("Submitting answers:", answersArray); // Debug log
 
@@ -445,28 +451,104 @@ export default function TakeQuizPage({ params }: { params: { id: string } }) {
     }
   };
 
-  const handleQuizCodeSubmit = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/quiz/join/${quizCodeInput}`
+  // Function to get user's location
+  const getCurrentLocation = (): Promise<{
+    latitude: number;
+    longitude: number;
+  }> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation is not supported by this browser"));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Location error:", error);
+          reject(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000,
+        }
       );
+    });
+  };
+
+  const handleQuizCodeSubmit = async () => {
+    setIsJoiningQuiz(true);
+
+    try {
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/api/quiz/join/${quizCodeInput}`;
+
+      // Try to get user's location automatically
+      try {
+        const location = await getCurrentLocation();
+        console.log("📍 Got user location:", location);
+
+        // Add location parameters to the URL
+        url += `?studentLatitude=${location.latitude}&studentLongitude=${location.longitude}`;
+
+        toast({
+          title: "Location Detected",
+          description: "Verifying your location...",
+        });
+      } catch (locationError) {
+        console.log("⚠️ Could not get location:", locationError);
+        // Continue without location - let backend handle the error if location is required
+        toast({
+          title: "Location Access",
+          description: "Could not access location. Proceeding to join quiz...",
+          variant: "destructive",
+        });
+      }
+
+      // Make the API call with or without location
+      const response = await axios.get(url);
       const quiz = response.data.quiz;
+
       setQuizData(quiz);
-      setTimeLeft(quiz.timeLimit || 30 * 60); // Use quiz time limit if available, otherwise default to 30 min
+      setTimeLeft(quiz.timeLimit * 60 || 30 * 60);
+
+      // Start quiz directly - backend has already verified everything
       startQuiz();
+
       toast({
-        title: "Quiz loaded successfully!",
-        description:
-          "The quiz will now start in fullscreen mode. Please do not exit fullscreen, switch tabs, or resize the window.",
+        title: "Quiz Joined Successfully!",
+        description: quiz.enableLocationRestriction
+          ? "Location verified. Quiz will start in fullscreen mode."
+          : "Quiz will start in fullscreen mode.",
       });
     } catch (error: any) {
-      console.error(error);
+      console.error("❌ Quiz join error:", error);
+
+      let errorMessage = "Please enter a valid quiz code";
+
+      if (error.response?.status === 400) {
+        errorMessage =
+          "Location verification required but could not access your location";
+      } else if (error.response?.status === 403) {
+        errorMessage =
+          error.response.data.message ||
+          "You are not in the correct location for this quiz";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
       toast({
-        title: "Invalid Quiz Code",
-        description:
-          error?.response?.data?.message || "Please enter a valid code",
+        title: "Cannot Join Quiz",
+        description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setIsJoiningQuiz(false);
     }
   };
 
@@ -518,14 +600,31 @@ export default function TakeQuizPage({ params }: { params: { id: string } }) {
                 value={quizCodeInput}
                 onChange={(e) => setQuizCodeInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" && !isJoiningQuiz) {
                     handleQuizCodeSubmit();
                   }
                 }}
+                disabled={isJoiningQuiz}
               />
-              <Button className="w-full" onClick={handleQuizCodeSubmit}>
-                Join Quiz
+              <Button
+                className="w-full"
+                onClick={handleQuizCodeSubmit}
+                disabled={isJoiningQuiz || !quizCodeInput}
+              >
+                {isJoiningQuiz ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Joining Quiz...
+                  </>
+                ) : (
+                  "Join Quiz"
+                )}
               </Button>
+              {isJoiningQuiz && (
+                <p className="text-sm text-muted-foreground text-center">
+                  Verifying quiz code and location (if required)...
+                </p>
+              )}
             </CardContent>
           </Card>
         )}
@@ -650,6 +749,9 @@ export default function TakeQuizPage({ params }: { params: { id: string } }) {
                 Your answers have been submitted successfully!
               </CardDescription>
             </CardHeader>
+            <CardContent>
+              <p className="text-lg font-medium">Score: {score}%</p>
+            </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
                 <Link href="/student/dashboard">Back to Dashboard</Link>

@@ -211,12 +211,6 @@ export default function AdminDashboard() {
                 Manage Users
               </Link>
             </Button>
-            <Button asChild className="shadow-sm">
-              <Link href="/admin/system">
-                <Activity className="mr-2 h-4 w-4" />
-                System Status
-              </Link>
-            </Button>
           </div>
         </div>
 

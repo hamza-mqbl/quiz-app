@@ -39,7 +39,7 @@ export default function StudentDashboard() {
           questions: quiz.questions.length,
           teacher: quiz.createdBy?.name || "Unknown Teacher",
           QuizCode: quiz?.quizCode,
-          timeLimit: "30 min",
+          timeLimit: quiz?.timeLimit + "min" || "20 min",
         }));
         setAvailableQuizzes(quizzes);
       } catch (error) {
