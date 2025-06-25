@@ -1,4 +1,4 @@
-# 🧠 AI-Powered Quiz System – Frontend
+# Machine Learning based Quiz System and preparation system – Frontend
 
 This is the **frontend** of the Machine Learning-Based Quiz & Preparation Suggestion System — an intelligent platform for teachers to create quizzes (manually or using AI) and for students to attempt them securely with real-time cheating prevention mechanisms and personalized AI feedback.
 
@@ -41,16 +41,21 @@ This is the **frontend** of the Machine Learning-Based Quiz & Preparation Sugges
 ```bash
 # Clone the repository
 git clone https://github.com/hamza-mqbl/quiz-app.git
+```
+
+```bash
 cd quiz-app
+```
 
 # Install dependencies
-npm install --legacy-per-deps
 
+```bash
+npm install --legacy-per-deps
+```
 
 # Run development server
-npm run dev
 
-```
+npm run dev
 
 Create a .env.local file in the root of your frontend project and add the following:
 
