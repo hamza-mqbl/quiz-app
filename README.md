@@ -38,8 +38,9 @@ This is the **frontend** of the Machine Learning-Based Quiz & Preparation Sugges
 
 > Ensure you have `Node.js` and `npm` installed.
 
-```bash
 # Clone the repository
+
+```bash
 git clone https://github.com/hamza-mqbl/quiz-app.git
 ```
 
